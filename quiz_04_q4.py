@@ -5,8 +5,8 @@ Created on Sat Jan 23 13:50:17 2021
 @author: Torin
 
 BE423
-Quiz 04 Question 3
-Penicillin Pill
+Quiz 04 Question 4
+Mezocillin Concentrations
 """
 
 import numpy as np
