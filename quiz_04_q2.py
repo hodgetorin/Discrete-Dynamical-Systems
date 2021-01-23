@@ -5,32 +5,36 @@ Created on Fri Jan 22 08:31:34 2021
 @author: Torin
 
 BE423
-Quiz 04
+Quiz 04 Question 2
 Salt removal model
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import stats
 
-t_actual = np.linspace(0,20,5)
+# volume of solution is constant 1000mL
+vol = 1000
 
+c = np.zeros(101) 
+salt = np.zeros(101)
 
+salt[0] = 2
+c[0] = salt[0]/vol
 
-# 20 time steps:
-t_cycle = np.linspace(0,19,20)
+# mass of salt (g) in each time step =
+# salt(n-1)(g) - concentration (n-1)(g/ml) * 50 (ml)
 
-# 2 grams of salt = constant 
-salt = 2
-water = np.zeros(20)
-C = np.zeros(20)
+for i in range(1,100):
+    salt[i] = salt[i-1] - c[i-1]*50   
+    c[i] = salt[i]/vol
 
-# initial water volume in mL:
-water[0] = 1000
+# 100 time steps:
+t_cycle = np.linspace(0,100,101)
 
-for i in range (1,20):
-    water[i] =  water[i-1] - 50
-    
+# mass of salt in solution after 20 steps:
+# salt[20] = approx. 0.717 g
+print(salt[20]) 
 
-#plt.plot(t_actual, Pe, 'bo', t_actual,P_actual, 'ro')
-#plt.legend(['data','equation','exponential'], loc='upper right')
+# plot with markers at every 20 time steps:
+plt.plot(t_cycle,salt,'-rD', markevery = 20)
+plt.xlabel("time step, n"); plt.ylabel("salt in solution (g)")
