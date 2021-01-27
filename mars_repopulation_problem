@@ -1,0 +1,127 @@
+Created on Sun Jan 24 20:22:52 2021
+
+@author: Torin Hodge
+
+BE 423 1/24/2021
+Quiz 05 Question 3
+
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+# create an array for the time scale, of 500 years length
+t = np.linspace(0,499,500)
+
+# fill an empty array for new population each year, and one for the running sum
+p = np.zeros(500)
+p_rsum = np.zeros(500)
+
+# fill an empty array for tracking new females 
+p_f = np.zeros(500)
+
+# fill an array for keeping track of the dead
+expired = np.zeros(500)
+
+# initial population: 5 males and 5 females
+p[0] = 10
+p_f[0] = 0.5 * p[0]
+
+# for the first 20 years, each female has one child every 5 years.
+# this means there will be 2 new female children in the year 0020
+
+p_f[9] = 1
+p_f[19] = 1
+
+# at the beginning of Martian year 0020, there are 7 males and 7 females. 
+
+# The Great Deathening of year 0020:
+year = 20
+p[19] = 4
+p_f[19] = -1
+
+# year 0020 - 0500 aka "Post-Deathening"
+
+# NASA introduces their Repopulation Program,
+# offering a generous stipend for each child produced
+# by Martian females once they are 20 years of age.
+
+# set absolute lifespan
+lifespan = 55
+
+# program participation rate
+part_rate = .85
+
+# number of babies per female
+n_babies = 6
+
+# year 0021 - 0026:
+# the only 4 females left are assumed to now be 40 years of age.
+# they have 1 child each, every year for n_babies years.
+# 0.5 are male children and 0.5 are female.
+
+for i in range(year-1,year+n_babies-1):
+    p_f[i] = 0.5*part_rate*p[19]
+    p[i] = 2*p_f[i]  
+    
+# by year 0040, the first female, Mars-born humans become 20 years old and
+# begin producing children through the NASA Repopulation Program 
+
+# this pattern will cycle between 20 years of no births
+# and (n_babies*2) - 1 years of constant births
+# until the total population reaches 500.
+
+
+# the initial 4 females reach their lifespan and die by the year(lifespan-21):
+expired[lifespan-21] = 4
+
+# running sum calculator:
+for i in range(0,500):
+    p_rsum[i] = sum(p[:i])
+    
+i=0
+
+while sum(p) <500:
+    year = year + 20
+    # the rate of new babies increases for the first (n_babies-1) years of the birthing period.
+    # for i in range(year-1,year+n_babies):
+    for i in range(0,n_babies+2):
+        p_f[year-1+i] = 0.5*part_rate*sum(p_f[year-20:year-20+i])
+        p[year-1+i] = 2*p_f[year-1+i]
+    
+    # after (n_babies) years, the rate of new births decreases:
+    for i in range(0,n_babies+1):
+        p_f[year+n_babies+i] = p_f[year-2+n_babies-i]
+        p[year+i] = 2*p_f[year+i]
+        
+    # anyone born (lifespan) years ago expires:
+    if year >= 55:
+        for i in range(0,21):
+            expired[year-1+i] = 2*p_f[year-1-lifespan]
+            p[year-1+i] = p[year-1+i] - expired[year-1+i]
+    
+    print("year", year)
+    print("population", int(sum(p)))
+            
+    # running sum calculator:
+    for i in range(0,500):
+        p_rsum[i] = sum(p[:i])
+        #
+        if p_rsum[i] >= 500:
+            p_500 = year
+            print("NASA Repopulation Program was successfull by year", p_500)
+            break
+            
+    # if the population falls below 0:
+    if p_rsum[i] <= 0:
+        print("NASA Repopulation Program failed by year", year)
+        break
+                        
+print("Number of expired humans:", int(sum(expired)))
+plt.plot(t,p,t,p_rsum)
+plt.ylabel("Human Population")
+plt.xlabel("Martian Year")
+plt.legend(['New Humans', 'Total Population'], loc='upper right')
+
+    
+    
