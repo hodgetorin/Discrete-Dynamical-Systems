@@ -1,0 +1,171 @@
+"""
+Created on Sun Jan 24 20:22:52 2021
+
+@author: Torin Hodge
+
+BE 423 1/24/2021
+Quiz 05 Question 3
+
+"""
+import random as rd
+import numpy as np
+import matplotlib.pyplot as plt
+
+def RepopSim(year, p, p_f, p_rsum, expired, success_count):     
+    lifespan = rd.randrange(lifespan_min, lifespan_max, 1)
+    n_babies = rd.randrange(n_babies_min, n_babies_max, 1)
+    part_rate = rd.uniform(part_rate_min, part_rate_max)
+    
+    # year 0021 - 0026:
+    # the only 4 females left are assumed to now be 40 years of age.
+    # they have 1 child each, every year for n_babies years.
+    # 0.5 are male children and 0.5 are female.
+    
+    for i in range(year-1,year+n_babies-1):
+        p_f[i] = 0.5*part_rate*p[19]
+        p[i] = 2*p_f[i]  
+    
+    # by year 0040, the first female, Mars-born humans become 20 years old and
+    # begin producing children through the NASA Repopulation Program 
+    
+    # this pattern will cycle between 20 years of no births
+    # and (n_babies*2) - 1 years of constant births
+    # until the total population reaches 500.
+    
+    
+    # the initial 4 females reach their lifespan and die by the year(lifespan-21):
+        
+    expired[lifespan-21] = 4
+    
+    # running sum calculator:
+    for i in range(0,100):
+        p_rsum[i] = sum(p[:i])
+        
+    # year 0020 - 0500 aka "Post-Deathening"
+    # NASA introduces their Repopulation Program,
+    # offering a generous stipend for each child produced
+    # by Martian females once they are 20 years of age.
+            
+    while sum(p) <500:
+        year = year + 20
+        lifespan = rd.randrange(lifespan_min, lifespan_max, 1)
+        n_babies = rd.randrange(n_babies_min, n_babies_max, 1)
+        part_rate = rd.uniform(part_rate_min, part_rate_max)
+       
+        for i in range(0,n_babies+2):
+            p_f[year-1+i] = 0.5*part_rate*sum(p_f[year-20:year-20+i])
+            p[year-1+i] = 2*p_f[year-1+i]
+        
+        # after (n_babies) years, the rate of new births decreases:
+        for i in range(0,n_babies+1):
+            p_f[year+n_babies+i] = p_f[year-2+n_babies-i]
+            p[year+i] = 2*p_f[year+i]
+            
+        # anyone born (lifespan) years ago expires:
+        if year >= 55:
+            for i in range(0,21):
+                expired[year-1+i] = 2*p_f[year-1-lifespan]
+                p[year-1+i] = p[year-1+i] - expired[year-1+i]
+                
+        
+        #print("year", year)
+        #print("lifespan", lifespan)
+        #print("number of babies per female", n_babies)
+        #print("participation rate", part_rate)
+        #print("population", int(sum(p))); print("\n")
+                
+        # running sum calculator:
+        for i in range(0,1000):
+            p_rsum[i] = sum(p[:i])
+            if p_rsum[i] >= 500:
+                    p_500 = year
+                    print("NASA Repopulation Program was successfull by year", p_500)
+                    return True 
+                                
+        # if the population falls below 0:
+        if p_rsum[i] <= 0:
+            print("NASA Repopulation Program failed by year", year)
+            return
+        
+        if year >= 975:
+            return
+
+def PreDeathening(year, p, p_f):
+    # initial population: 5 males and 5 females
+    p[0] = 10
+    p_f[0] = 0.5 * p[0]
+    
+    # for the first 20 years, each female has one child every 5 years.
+    # this means there will be 2 new female children in the year 0020
+    
+    p_f[9] = 1
+    p_f[19] = 1
+    
+    # at the beginning of Martian year 0020, there are 7 males and 7 females. 
+    
+    # The Great Deathening of year 0020:
+    year = 20
+    p[19] = 4
+    p_f[19] = -1
+    
+    return p, p_f, year
+
+# create an array for the time scale (only needed if drawing graphs)
+# t = np.linspace(0,999,1000)
+
+# set the intervals for lifespan, number of babies, and participation rates:
+
+lifespan_min = 55; lifespan_max = 75
+n_babies_min = 7; n_babies_max = 10
+part_rate_min = 0.85; part_rate_max = 1
+
+# run the simulation "n_sim" times:
+n_sim = 100
+
+# keep track of passed trials:
+success_count = 0
+
+# death_toll = np.zeros(n_sim);p_sim_sum = np.zeros(n_sim)
+
+for k in range (0,n_sim):
+    
+    # start the population parameters at zero before entering simulation:
+    p = np.zeros(2000); p_f = np.zeros(2000); expired = np.zeros(2000); p_rsum = np.zeros(2000)
+    i=0; year=0
+    
+    PreDeathening(year, p, p_f)
+    trial = RepopSim(year, p, p_f, p_rsum, expired, success_count)
+    if trial == True:
+        success_count += 1
+      
+    # death_toll[k] = sum(expired[:i])
+    # p_sim_sum[k] = p_rsum[i]
+    
+    # reset population variables to re-enter the while loop:
+    p = np.zeros(1000)
+    p_rsum = np.zeros(1000)
+    #expired = np.zeros(1000)
+
+
+print("Successful trials: ", success_count)  
+print("Failed trials: ", n_sim-success_count)
+
+# TO ADD:
+# --> 5 number summary (min, max, Q1, median, Q3)
+# --> change the n_babies, lifespan,.. parameters from intervals to means.
+#       --> inside the while loop, the sample should be taken from a normally distributed set of random numbers.
+# --> plot the three random number parameters against success/fails
+# --> track the max population achieved                  
+
+
+# print("Average death toll:", sum(death_toll)/n_sim)
+# print("Average total population:", sum(p_sim_sum)/n_sim)
+        
+   
+#plt.plot(t,p,t,p_rsum)
+#plt.ylabel("Human Population")
+#plt.xlabel("Martian Year")
+#plt.legend(['New Humans', 'Total Population'], loc='upper right')
+
+
+   
